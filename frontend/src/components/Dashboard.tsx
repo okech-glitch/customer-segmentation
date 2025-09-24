@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { BarChart3, PieChart, Users, TrendingUp, Award, Download } from 'lucide-react';
+import { getApiBaseUrl } from '@/lib/api';
 
 interface DashboardProps {
   results: {
@@ -36,7 +37,9 @@ export default function Dashboard({ results }: DashboardProps) {
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const res = await fetch('http://localhost:8000/model-info');
+        const res = await fetch(`${getApiBaseUrl()}/model-info`, {
+          next: { revalidate: 0 },
+        });
         if (res.ok) {
           const data = await res.json();
           setModelInfo(data);

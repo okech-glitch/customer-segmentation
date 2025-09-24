@@ -52,15 +52,30 @@ model_loaded = False
 _model_info_mtime = 0.0
 last_results_df = None  # enriched DataFrame from last upload (with predictions)
 
+
+def get_models_dir() -> str:
+    env_dir = os.getenv("MODELS_DIR")
+    if env_dir:
+        return os.path.abspath(env_dir)
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
+
+
+def get_data_dir() -> str:
+    env_dir = os.getenv("DATA_DIR")
+    if env_dir:
+        return os.path.abspath(env_dir)
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+
 def load_model_components():
     """Load trained model components"""
     global model_components, model_loaded
     
     try:
-        model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
+        model_dir = get_models_dir()
 
         # Load model info first (to decide which artifacts to expect)
-        with open(f'{model_dir}/model_info.json', 'r') as f:
+        model_info_path = os.path.join(model_dir, 'model_info.json')
+        with open(model_info_path, 'r') as f:
             info = json.load(f)
         model_components['info'] = info
 
@@ -82,7 +97,8 @@ def load_model_components():
             print("✅ PCA+KMeans artifacts loaded")
 
         # Load encoders/scaler
-        model_components['encoders'] = joblib.load(f'{model_dir}/encoders.pkl')
+        encoders_path = os.path.join(model_dir, 'encoders.pkl')
+        model_components['encoders'] = joblib.load(encoders_path)
         
         model_loaded = True
         print("✅ Model components loaded successfully")
@@ -98,8 +114,7 @@ async def startup_event():
     # Start background watcher to auto-reload model artifacts when they change
     async def _watch_models_dir():
         global _model_info_mtime
-        model_info_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'models', 'model_info.json')
-        # Normalize path
+        model_info_path = os.path.join(get_models_dir(), 'model_info.json')
         model_info_path = os.path.abspath(model_info_path)
         while True:
             try:

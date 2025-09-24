@@ -5,6 +5,7 @@ import { Upload, BarChart3, Users, Target, Award, TrendingUp } from 'lucide-reac
 import FileUpload from '@/components/FileUpload';
 import Dashboard from '@/components/Dashboard';
 import Header from '@/components/Header';
+import { getApiBaseUrl } from '@/lib/api';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('upload');
@@ -15,7 +16,9 @@ export default function Home() {
     // Fetch current model info from backend to show live segments/silhouette
     const fetchInfo = async () => {
       try {
-        const res = await fetch('http://localhost:8000/model-info');
+        const res = await fetch(`${getApiBaseUrl()}/model-info`, {
+          next: { revalidate: 0 },
+        });
         if (res.ok) {
           const data = await res.json();
           setModelInfo(data);
